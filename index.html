@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT Stash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Open+Sans', sans-serif;
+        }
+        .category-btn {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            color: #111827; /* Tailwind gray-900 */
+        }
+        .card {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            color: #111827; /* Tailwind gray-900 */
+            overflow: hidden;
+            text-align: center;
+        }
+        .card i {
+            font-size: 3em; /* Adjust icon size */
+            margin-bottom: 10px;
+        }
+        .pagination-btn {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            color: #111827; /* Tailwind gray-900 */
+        }
+        .gpt-link {
+            display: block;
+            margin-top: 10px;
+            color: #2563eb; /* Tailwind blue-600 */
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+    <div class="container mx-auto p-4">
+        <header class="text-center py-4">
+            <h1 class="text-4xl font-bold">GPT Stash</h1>
+            <p class="mt-2 text-md">Explore the diverse capabilities of GPT models. Browse through various categories, get insights, and find the GPT that best fits your needs.</p>
+        </header>
+        <div class="flex justify-center my-4">
+            <input type="text" id="searchInput" placeholder="Search" class="p-2 rounded" onkeyup="searchItems()">
+        </div>
+        <div class="text-center my-4">
+            <h2 class="text-2xl font-semibold">Categories</h2>
+            <div class="flex justify-center space-x-2 my-2" id="categoryButtons">
+                <!-- Categories will be loaded here -->
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4" id="cardsContainer">
+            <!-- Cards will be loaded here -->
+        </div>
+        <div class="flex justify-center space-x-2 my-4" id="pagination">
+            <!-- Pagination will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const categories = ['Cat 1', 'Cat 2', 'Cat 3', 'Cat 4'];
+        const cards = [
+            { title: 'Recruiter GPT', description: 'A virtual assistant designed for recruitment tasks, streamlining the hiring process.', category: 'Cat 1', iconClass: 'fas fa-user-tie', link: 'https://chat.openai.com/g/g-3B4HAUDh3-recruiter-gpt' },
+            { title: 'Recruiter Chat', description: 'Enhance your recruitment strategies with automated, AI-driven chat interactions.', category: 'Cat 2', iconClass: 'fas fa-comments', link: 'https://chat.openai.com/g/g-uLWdXcnGy-recruiter-chat' },
+            { title: 'Digital Marketing Recruiter', description: 'Optimize your digital marketing recruitment with this specialized AI tool.', category: 'Cat 3', iconClass: 'fas fa-bullhorn', link: 'https://chat.openai.com/g/g-qVR3qbe6H-digital-marketing-recruiter' },
+            { title: 'Pocket Recruiter', description: 'Your pocket-sized recruitment assistant, always ready to provide quick solutions.', category: 'Cat 1', iconClass: 'fas fa-briefcase', link: 'https://chat.openai.com/g/g-zv2K3twk7-pocket-recruiter' },
+            { title: 'Outreach Machine by Ramon Egea', description: 'Automate your outreach efforts with this advanced AI tool by Ramon Egea.', category: 'Cat 2', iconClass: 'fas fa-mail-bulk', link: 'https://chat.openai.com/g/g-c1rLP8LPt-outreach-machine-by-ramon-egea' },
+            { title: 'Career Mentor', description: 'Navigate your career path with guidance from this AI-powered career mentor.', category: 'Cat 3', iconClass: 'fas fa-user-graduate', link: 'https://chat.openai.com/g/g-7uohsRVB1-career-mentor' },
+            { title: 'SaaS Outreach Wizard', description: 'Boost your SaaS outreach campaigns with this wizardly AI tool.', category: 'Cat 1', iconClass: 'fas fa-cloud-upload-alt', link: 'https://chat.openai.com/g/g-xZE50fCiP-saas-outreach-wizard' },
+            { title: 'Academist AI', description: 'Enhance your academic research and studies with this specialized AI assistant.', category: 'Cat 2', iconClass: 'fas fa-book-reader', link: 'https://chat.openai.com/g/g-UEX6oBkCJ-academist-ai' },
+            { title: 'Outbound Email GPT', description: 'Streamline your email campaigns with this AI-driven outbound email tool.', category: 'Cat 3', iconClass: 'fas fa-envelope-open-text', link: 'https://chat.openai.com/g/g-CMVn6aflL-outbound-email-gpt' },
+            // ... other cards ...
+        ];
+        let filteredCards = cards;
+        const cardsPerPage = 6;
+        let currentPage = 1;
+
+        function loadCategories() {
+            const categoryContainer = document.getElementById('categoryButtons');
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-btn px-4 py-2 rounded';
+                button.textContent = category;
+                button.onclick = () => filterCardsByCategory(category);
+                categoryContainer.appendChild(button);
+            });
+        }
+
+        function loadCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = ''; // Clear existing cards
+            const start = (currentPage - 1) * cardsPerPage;
+            const end = start + cardsPerPage;
+            filteredCards.slice(start, end).forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card p-4 rounded';
+                cardDiv.innerHTML = `
+                    <i class="${card.iconClass}"></i>
+                    <h3 class="font-semibold">${card.title}</h3>
+                    <p class="my-2">${card.description}</p>
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded">Use it</button>
+                    <a href="${card.link}" class="gpt-link" target="_blank"></a>`;
+                container.appendChild(cardDiv);
+            });
+        }
+
+        function setupPagination() {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = ''; // Clear existing buttons
+            const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.className = 'pagination-btn px-4 py-2 rounded';
+                button.textContent = i;
+                button.onclick = () => {
+                    currentPage = i;
+                    loadCards();
+                };
+                paginationContainer.appendChild(button);
+            }
+        }
+
+        function searchItems() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            filteredCards = cards.filter(card => 
+                card.title.toLowerCase().includes(searchValue) || 
+                card.description.toLowerCase().includes(searchValue));
+            currentPage = 1;
+            loadCards();
+            setupPagination();
+        }
+
+        function filterCardsByCategory(category) {
+            filteredCards = cards.filter(card => card.category === category);
+            currentPage = 1;
+            loadCards();
+            setupPagination();
+        }
+
+        loadCategories();
+        loadCards();
+        setupPagination();
+    </script>
+</body>
+</html>
